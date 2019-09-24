@@ -4,7 +4,7 @@ The Splunk distributed tracing library for C#
 [![NuGet](https://img.shields.io/nuget/v/Splunk.svg)](https://www.nuget.org/packages/Splunk) [![CircleCI](https://circleci.com/gh/splunk/splunk-tracer-csharp.svg?style=svg)](https://circleci.com/gh/splunk/splunk-tracer-csharp) [![codecov](https://codecov.io/gh/splunk/splunk-tracer-csharp/branch/master/graph/badge.svg)](https://codecov.io/gh/splunk/splunk-tracer-csharp)
 
 # Installation
-Install the package via NuGet into your solution, or use `Install-Package Splunk` / `dotnet add package Splunk`.
+Install the package via NuGet into your solution, or use `Install-Package SplunkTracing` / `dotnet add package SplunkTracing`.
 
 # Basic Usage
 It's recommended to initialize the tracer once at the beginning of your application and assign it as the global tracer, as follows:

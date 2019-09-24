@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+    <AssemblyName>SplunkTracing.CSharpTestApp</AssemblyName>
+    <RootNamespace>SplunkTracing.CSharpTestApp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTracing" Version="0.12.0" />
+    <PackageReference Include="Serilog" Version="2.7.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SplunkTracing\SplunkTracing.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="OpenTracing, Version=0.12.0.0, Culture=neutral, PublicKeyToken=61503406977abdaf">
+      <HintPath>..\..\..\..\.nuget\packages\opentracing\0.12.0\lib\net45\OpenTracing.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

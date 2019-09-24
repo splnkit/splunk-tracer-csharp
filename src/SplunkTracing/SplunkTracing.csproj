@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>SplunkTracing</AssemblyName>
+    <RootNamespace>SplunkTracing</RootNamespace>
+    <LangVersion>7.0</LangVersion>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Api.CommonProtos" Version="1.3.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
+    <PackageReference Include="LibLog" Version="5.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
+    <PackageReference Include="OpenTracing" Version="0.12.0" />
+    <PackageReference Include="System.Json" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="google\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="google\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="google\**" />
+    <None Remove="collector.proto" />
+    <None Remove="splunk.proto" />
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' ">
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+      
+  <PropertyGroup>
+      <Authors>Austin Parker</Authors>
+      <Company>SplunkTracing</Company>
+      <NeutralLanguage>en-US</NeutralLanguage>
+      <AssemblyTitle>SplunkTracing</AssemblyTitle>
+      <Description>OpenTracing compliant tracer for Splunk.</Description>
+      <Copyright>Splunk 2019</Copyright>
+      <PackageTags>tracing</PackageTags>
+      <PackageReleaseNotes>https://github.com/splunk/splunk-tracer-csharp/blob/master/CHANGELOG.md</PackageReleaseNotes>
+      <PackageIconUrl>https://raw.githubusercontent.com/splunk/splunk-tracer-csharp/master/spl128x128.png</PackageIconUrl>
+      <PackageProjectUrl>http://www.splunk.com</PackageProjectUrl>
+      <PackageLicenseUrl>https://raw.githubusercontent.com/splunk/splunk-tracer-csharp/blob/master/LICENSE</PackageLicenseUrl>
+      <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+      <RepositoryType>git</RepositoryType>
+      <RepositoryUrl>https://raw.githubusercontent.com/splunk/splunk-tracer-csharp</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+      <SignAssembly>true</SignAssembly>
+      <DelaySign>false</DelaySign>
+      <AssemblyOriginatorKeyFile>../../tracerSign.snk</AssemblyOriginatorKeyFile>
+      <_UseRoslynPublicSignHack>false</_UseRoslynPublicSignHack>
+      <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+</Project>
