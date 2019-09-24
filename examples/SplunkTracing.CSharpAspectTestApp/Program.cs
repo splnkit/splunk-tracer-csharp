@@ -16,8 +16,8 @@ namespace SplunkTracing.CSharpAspectTestApp
         {
             // create your tracer options, initialize it, assign it to the GlobalTracer
             var splKey = Environment.GetEnvironmentVariable("SPL_KEY");
-            var splSettings = new SatelliteOptions("localhost");
-            var splOptions = new Options(splKey).WithSatellite(lsSettings);
+            var splSettings = new CollectorOptions("localhost");
+            var splOptions = new Options(splKey).WithCollector(lsSettings);
             var tracer = new Tracer(splOptions);
             
             GlobalTracer.Register(tracer);

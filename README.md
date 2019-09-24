@@ -29,19 +29,19 @@ There's several options that can be adjusted when instantiating a `SplunkTracer`
 | -------- | ----------- |
 | WithTags(IDictionary<string, object>)   | Default tags to apply to all spans created by the tracer.  |
 | WithReportPeriod(TimeSpan)  | How frequently the Tracer should batch and send Spans to Splunk (5s default) |
-| WithReportTimeout(TimeSpan)  | Timeout for sending spans to the Satellite (30s default)  |
+| WithReportTimeout(TimeSpan)  | Timeout for sending spans to the Collector (30s default)  |
 | WithToken(string) | The Splunk Project Access Token |
-| WithSatellite(SatelliteOptions) | A SatelliteOptions object that specifies the host, port, and if we should use HTTPS |
-| WithHttp2(bool) | If this is true, we use HTTP/2 to communicate with the Satellite. We reccomend you enable this option if you're on a modern version of .NET (4.6.1+ or .NET Core) |
+| WithCollector(CollectorOptions) | A CollectorOptions object that specifies the host, port, and if we should use HTTPS |
+| WithHttp2(bool) | If this is true, we use HTTP/2 to communicate with the Collector. We recommend you enable this option if you're on a modern version of .NET (4.6.1+ or .NET Core) |
 | WithAutomaticReporting(bool) | If false, disables the automatic flushing of buffered spans. |
 | WithMaxBufferedSpans(int) | The maximum amount of spans to record in a single buffer. |
-| WithTransport(enum) | Which transport to use when sending spans to the Satellite. |
+| WithTransport(enum) | Which transport to use when sending spans to the Collector. |
 
-## `SatelliteOptions`
+## `CollectorOptions`
 | Property | Description |
 | -------- | ----------- |
-| SatelliteHost | The hostname of a Satelite (i.e., `collector.splunk.com`)
-| SatellitePort | The port number where the Satellite is listening for HTTP traffic (defaults to 443)
+| CollectorHost | The hostname of a HEC collector (e.g., `localhost`)
+| CollectorPort | The port number where the HEC is listening for HTTP traffic (defaults to 8088)
 | UsePlaintext | Should we use HTTP or HTTPS traffic? (Defaults to HTTPS)
 
 The C# Tracer will prefer TLS 1.2 when available on all .NET Runtime versions, but should fall back to TLS 1.1 or 1.0 in that order.
@@ -49,13 +49,13 @@ The C# Tracer will prefer TLS 1.2 when available on all .NET Runtime versions, b
 The following is an example of overriding the Splunk Component Name and adding a new custom tag for all spans -
 
 ```csharp
-var satelliteOptions = new SatelliteOptions("satellite.mydomain.com");
+var collectorOptions = new CollectorOptions("localhost");
 var overrideTags = new Dictionary<string, object> 
 {
     {SplunkConstants.ComponentNameKey, "test_component"},
     {"my_tag", "foobar"}
 };
-var tracerOptions = new Options("TEST_TOKEN").WithSatellite(satelliteOptions).WithTags(overrideTags);
+var tracerOptions = new Options("TEST_TOKEN").WithCollector(collectorOptions).WithTags(overrideTags);
 var tracer = new Tracer(tracerOptions);
 ```
 

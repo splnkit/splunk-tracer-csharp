@@ -147,8 +147,8 @@ namespace SplunkTracing
                 /**
                  * there are two ways spans can be dropped:
                  * 1. the buffer drops a span because it's too large, malformed, etc.
-                 * 2. the report failed to be sent to the satellite.
-                 * since flush is async and there can potentially be any number of buffers in flight to the satellite,
+                 * 2. the report failed to be sent to the collector.
+                 * since flush is async and there can potentially be any number of buffers in flight to the collector,
                  * we need to set the current drop count on the tracer to be the amount of dropped spans from the buffer
                  * plus the existing dropped spans, then mutate the current buffer to this new total value.
                  */
@@ -165,7 +165,7 @@ namespace SplunkTracing
                     {
                         _logger.Warn($"Errors in report: {resp.Errors}");
                     }
-                    // if the satellite is in developer mode, set the tracer to development mode as well
+                    // if the collector is in developer mode, set the tracer to development mode as well
                     // don't re-enable if it's already enabled though
                     // TODO: iterate through all commands to find devmode flag
                     if (resp.Commands.Count > 0 && resp.Commands[0].DevMode && _options.EnableMetaEventLogging == false)

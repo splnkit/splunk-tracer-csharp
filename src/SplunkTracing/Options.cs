@@ -31,7 +31,7 @@ namespace SplunkTracing
         /// 
         public bool Run { get; private set; }
         /// <summary>
-        ///     True if the satellite connection should use HTTP/2, false otherwise.
+        ///     True if the collector connection should use HTTP/2, false otherwise.
         /// </summary>
         public bool UseHttp2 { get; private set; }
 
@@ -61,7 +61,7 @@ namespace SplunkTracing
         public IDictionary<string, object> Tags { get; private set; }
 
         /// <summary>
-        ///     If the tracer should send JSON rather than binary protobufs to the satellite.
+        ///     If the tracer should send JSON rather than binary protobufs to the collector.
         /// </summary>
         public TransportOptions Transport { get; private set; }
 
@@ -96,7 +96,7 @@ namespace SplunkTracing
 
         public Options WithCollector(CollectorOptions options)
         {
-            _logger.Debug($"Setting satellite to {options}");
+            _logger.Debug($"Setting collector to {options}");
             Collector = options;
             return this;
         }

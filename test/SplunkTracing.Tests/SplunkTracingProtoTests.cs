@@ -12,15 +12,15 @@ namespace SplunkTracing.Tests
         private Tracer GetTracer(ISpanRecorder recorder = null)
         {
             var spanRecorder = recorder ?? new SimpleMockRecorder();
-            var collectorOptions = new SatelliteOptions("localhost", 80, true);
-            var tracerOptions = new Options("TEST").WithSatellite(collectorOptions).WithAutomaticReporting(false);
+            var collectorOptions = new CollectorOptions("localhost", 8088, true);
+            var tracerOptions = new Options("TEST").WithCollector(collectorOptions).WithAutomaticReporting(false);
             return new Tracer(tracerOptions, spanRecorder);
         }
 
-        private SplunkTracingHttpClient GetClient(TransportOptions t = TransportOptions.BinaryProto)
+        private SplunkTracingHttpClient GetClient(TransportOptions t = TransportOptions.JsonProto)
         {
-            var collectorOptions = new SatelliteOptions("localhost", 80, true);
-            var tracerOptions = new Options("TEST").WithSatellite(collectorOptions).WithAutomaticReporting(false).WithTransport(t);
+            var collectorOptions = new CollectorOptions("localhost", 8088, true);
+            var tracerOptions = new Options("TEST").WithCollector(collectorOptions).WithAutomaticReporting(false).WithTransport(t);
             return new SplunkTracingHttpClient("http://localhost:80", tracerOptions);
         }
 

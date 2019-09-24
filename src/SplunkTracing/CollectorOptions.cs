@@ -8,8 +8,8 @@ namespace SplunkTracing
         /// <summary>
         ///     Create a new Collector Endpoint.
         /// </summary>
-        /// <param name="host">satellite hostname</param>
-        /// <param name="port">satellite port</param>
+        /// <param name="host">collector hostname</param>
+        /// <param name="port">collector port</param>
         /// <param name="usePlaintext">unused</param>
         public CollectorOptions(string host, int port = 8088, bool usePlaintext = false)
         {
