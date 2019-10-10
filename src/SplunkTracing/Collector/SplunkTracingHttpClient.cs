@@ -1,13 +1,16 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Diagnostics; 
+using System.IO;
+using System.IO.Compression;
+// using System.IO.Compression.GzipStream;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text; 
 using System.Threading.Tasks;
-using Google.Protobuf;
 using SplunkTracing.Logging;
-using Google.Protobuf.WellKnownTypes;
+
 
 namespace SplunkTracing.Collector
 {
@@ -33,23 +36,25 @@ namespace SplunkTracing.Collector
             _client = new HttpClient() {Timeout = _options.ReportTimeout};
         }
 
-        internal HttpRequestMessage CreateStringRequest(ReportRequest report)
+        internal HttpRequestMessage CreateCompressedRequest(ReportRequest report)
         {
-            var jsonFormatter = new JsonFormatter(new JsonFormatter.Settings(true));
-            var jsonReport = jsonFormatter.Format(report);
+            // var jsonFormatter = new JsonFormatter(new JsonFormatter.Settings(true));
+            // var jsonReport = jsonFormatter.Format(report);
+            var jsonReport = CompressRequestContent(report);
             var request = new HttpRequestMessage(HttpMethod.Post, _url)
             {
                 Version = _options.UseHttp2 ? new Version(2, 0) : new Version(1, 1),
-                Content = new StringContent(jsonReport)
+                Content = new ByteArrayContent(jsonReport)
             };
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            request.Content.Headers.ContentEncoding.Add("gzip");
             return request;
         }
 
 
         internal HttpRequestMessage BuildRequest(ReportRequest report)
         {
-            HttpRequestMessage requestMessage = CreateStringRequest(report);
+            HttpRequestMessage requestMessage = CreateCompressedRequest(report);
 
             // add HEC access token to request header
             requestMessage.Content.Headers.Add("Authorization", "Splunk " + report.Auth.AccessToken);
@@ -57,6 +62,29 @@ namespace SplunkTracing.Collector
             return requestMessage;
 
         }
+
+        internal byte[] CompressRequestContent(ReportRequest report)
+        {
+            string requestMessage = CreateStringRequest(report);
+            byte[] requestBytes = Encoding.Unicode.GetBytes(requestMessage);
+
+            using (MemoryStream memoryStream = new MemoryStream()) {
+                using (System.IO.Compression.GZipStream gZipStream = new System.IO.Compression.GZipStream(memoryStream, CompressionMode.Compress, true)) {
+                    gZipStream.Write(requestBytes, 0, requestBytes.Length);
+                }
+            return memoryStream.ToArray();
+            }
+
+        }
+
+        internal string CreateStringRequest(ReportRequest report)
+        {
+            
+            return report.ToString();
+
+        }
+
+
 
         /// <summary>
         ///     Send a report of spans to the Splunk Collector.
@@ -81,8 +109,8 @@ namespace SplunkTracing.Collector
             {
                 var response = await _client.SendAsync(requestMessage);
                 response.EnsureSuccessStatusCode();
-                var responseData = await response.Content.ReadAsStreamAsync();
-                responseValue = ReportResponse.Parser.ParseFrom(responseData);
+                var responseData = await response.Content.ReadAsStringAsync();
+                responseValue = ReportResponse.Parse(responseData);
                 _logger.Debug($"Report HTTP Response {response.StatusCode}");
             }
             catch (HttpRequestException ex)
@@ -107,13 +135,13 @@ namespace SplunkTracing.Collector
         }
 
         /// <summary>
-        ///     Translate SpanData to a protobuf ReportRequest for sending to the Collector.
+        ///     Translate SpanData to a JSONHttp ReportRequest for sending to the Collector.
         /// </summary>
         /// <param name="spans">An enumerable of <see cref="SpanData" /></param>
         /// <returns>A <see cref="ReportRequest" /></returns>
         public ReportRequest Translate(ISpanRecorder spanBuffer)
         {
-            _logger.Debug($"Serializing {spanBuffer.GetSpans().Count()} spans to proto.");
+            _logger.Debug($"Serializing {spanBuffer.GetSpans().Count()} spans.");
             var timer = new Stopwatch();
             timer.Start();
 
@@ -125,11 +153,13 @@ namespace SplunkTracing.Collector
                 },
                 Auth = new Auth {AccessToken = _options.AccessToken}
             };
-            _options.Tags.ToList().ForEach(t => request.Reporter.Tags.Add(new KeyValue().MakeKeyValueFromKvp(t)));
+            _options.Tags.ToList().ForEach(t => request.Reporter.Tags.Add(t.Key,t.Value));
             spanBuffer.GetSpans().ToList().ForEach(span => {
                 try 
                 {
-                    request.Spans.Add(new Span().MakeSpanFromSpanData(span));
+                    request.Spans.Add(span);
+                    // var serializer = new JavaScriptSerializer();                   //////////////
+                    // var serializedResult = serializer.Serialize(RegisteredUsers); //////////////
                 }
                 catch (Exception ex)
                 {
@@ -137,14 +167,6 @@ namespace SplunkTracing.Collector
                     spanBuffer.DroppedSpanCount++;
                 }
             });
-
-            var metrics = new InternalMetrics
-            {
-                StartTimestamp = Timestamp.FromDateTime(spanBuffer.ReportStartTime.ToUniversalTime()),
-                DurationMicros = Convert.ToUInt64((spanBuffer.ReportEndTime - spanBuffer.ReportStartTime).Ticks / 10),
-                Counts = { new MetricsSample() { Name = "spans.dropped", IntValue = spanBuffer.DroppedSpanCount } }
-            };
-            request.InternalMetrics = metrics;
 
             timer.Stop();
             _logger.Debug($"Serialization complete in {timer.ElapsedMilliseconds}ms. Request size: {request.CalculateSize()}b.");

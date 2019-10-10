@@ -1,7 +1,7 @@
 # splunk-tracer-csharp
 The Splunk distributed tracing library for C#
 
-[![NuGet](https://img.shields.io/nuget/v/Splunk.svg)](https://www.nuget.org/packages/Splunk) [![CircleCI](https://circleci.com/gh/splunk/splunk-tracer-csharp.svg?style=svg)](https://circleci.com/gh/splunk/splunk-tracer-csharp) [![codecov](https://codecov.io/gh/splunk/splunk-tracer-csharp/branch/master/graph/badge.svg)](https://codecov.io/gh/splunk/splunk-tracer-csharp)
+[![MIT license](http://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 # Installation
 Install the package via NuGet into your solution, or use `Install-Package SplunkTracing` / `dotnet add package SplunkTracing`.
@@ -26,10 +26,10 @@ There's several options that can be adjusted when instantiating a `SplunkTracer`
 
 ## `Options`
 | Method | Description |
-| -------- | ----------- |
-| WithTags(IDictionary<string, object>)   | Default tags to apply to all spans created by the tracer.  |
-| WithReportPeriod(TimeSpan)  | How frequently the Tracer should batch and send Spans to Splunk (5s default) |
-| WithReportTimeout(TimeSpan)  | Timeout for sending spans to the Collector (30s default)  |
+| ------ | ----------- |
+| WithTags(IDictionary<string, object>) | Default tags to apply to all spans created by the tracer. |
+| WithReportPeriod(TimeSpan) | How frequently the Tracer should batch and send Spans to Splunk (5s default) |
+| WithReportTimeout(TimeSpan) | Timeout for sending spans to the Collector (30s default) |
 | WithToken(string) | The Splunk Project Access Token |
 | WithCollector(CollectorOptions) | A CollectorOptions object that specifies the host, port, and if we should use HTTPS |
 | WithHttp2(bool) | If this is true, we use HTTP/2 to communicate with the Collector. We recommend you enable this option if you're on a modern version of .NET (4.6.1+ or .NET Core) |
@@ -62,3 +62,20 @@ var tracer = new Tracer(tracerOptions);
 ## Logging
 This tracer uses [LibLog](https://github.com/damianh/LibLog), a transparent logging abstraction that provides built-in support for NLog, Log4Net, Serilog, and Loupe.
 If you use a logging provider that isn't identified by LibLog, see [this gist](https://gist.github.com/damianh/fa529b8346a83f7f49a9) on how to implement a custom logging provider.
+
+
+
+This library is the Splunk binding for [OpenTracing](http://opentracing.io/). See the [OpenTracing Python API](https://github.com/opentracing/opentracing-csharp) for additional detail.
+
+## License
+
+The Splunk Tracer for CSharp is licensed under the MIT License. Details can be found in the LICENSE file.
+
+### Third-party libraries
+
+This is a fork of the CSharp tracer from Lightstep, which is also licensed under the MIT License. Links to the original repository and license are below:
+
+* [lightstep-tracer-csharp][lightstep]: [MIT][lightstep-license]
+
+[lightstep]:                      https://github.com/lightstep/lightstep-tracer-csharp
+[lightstep-license]:              https://github.com/lightstep/lightstep-tracer-csharp/blob/master/LICENSE

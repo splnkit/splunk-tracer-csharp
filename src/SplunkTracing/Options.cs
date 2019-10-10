@@ -61,7 +61,7 @@ namespace SplunkTracing
         public IDictionary<string, object> Tags { get; private set; }
 
         /// <summary>
-        ///     If the tracer should send JSON rather than binary protobufs to the collector.
+        ///     If the tracer should send JSON to the collector.
         /// </summary>
         public TransportOptions Transport { get; private set; }
 
@@ -165,7 +165,7 @@ namespace SplunkTracing
             UseHttp2 = false;
             Run = true;
             ReportMaxSpans = int.MaxValue;
-            Transport = TransportOptions.BinaryProto;
+            Transport = TransportOptions.JsonHttp;
             EnableMetaEventLogging = false;
             ExceptionHandlerRegistered = false;
         }

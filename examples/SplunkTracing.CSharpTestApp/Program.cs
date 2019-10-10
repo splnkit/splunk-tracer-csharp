@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using Google.Protobuf.WellKnownTypes;
 using OpenTracing.Util;
 using global::Serilog;
 using Serilog.Events;

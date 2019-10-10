@@ -161,14 +161,14 @@ namespace SplunkTracing
                     var data = _httpClient.Translate(currentBuffer);
                     var resp = await _httpClient.SendReport(data);
                     
-                    if (resp.Errors.Count > 0)
+                    if (resp.code > 0)
                     {
-                        _logger.Warn($"Errors in report: {resp.Errors}");
+                        _logger.Warn($"Errors in report: {resp.text}");
                     }
                     // if the collector is in developer mode, set the tracer to development mode as well
                     // don't re-enable if it's already enabled though
                     // TODO: iterate through all commands to find devmode flag
-                    if (resp.Commands.Count > 0 && resp.Commands[0].DevMode && _options.EnableMetaEventLogging == false)
+                    if (_options.EnableMetaEventLogging == false)
                     {
                         _logger.Info("Enabling meta event logging");
                         _options.EnableMetaEventLogging = true;

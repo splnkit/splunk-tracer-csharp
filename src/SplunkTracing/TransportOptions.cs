@@ -9,8 +9,8 @@ namespace SplunkTracing
     public enum TransportOptions
     {
         /// <summary>
-        /// JSON protobuf encoding over HTTP
+        /// JSON encoding over HTTP
         /// </summary>
-        JsonProto
+        JsonHttp
     }
 }

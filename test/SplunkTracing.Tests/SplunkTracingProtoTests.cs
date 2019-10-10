@@ -17,7 +17,7 @@ namespace SplunkTracing.Tests
             return new Tracer(tracerOptions, spanRecorder);
         }
 
-        private SplunkTracingHttpClient GetClient(TransportOptions t = TransportOptions.JsonProto)
+        private SplunkTracingHttpClient GetClient(TransportOptions t = TransportOptions.JsonHttp)
         {
             var collectorOptions = new CollectorOptions("localhost", 8088, true);
             var tracerOptions = new Options("TEST").WithCollector(collectorOptions).WithAutomaticReporting(false).WithTransport(t);
@@ -32,7 +32,7 @@ namespace SplunkTracing.Tests
             var span = tracer.BuildSpan("test").Start();
             span.Finish();
 
-            var client = GetClient(TransportOptions.JsonProto);
+            var client = GetClient(TransportOptions.JsonHttp);
             var translatedSpans = client.Translate(recorder.GetSpanBuffer());
             var report = client.BuildRequest(translatedSpans);
             Assert.Equal("application/json", report.Content.Headers.ContentType.MediaType);
@@ -54,96 +54,56 @@ namespace SplunkTracing.Tests
             Assert.Equal("application/octet-stream", report.Content.Headers.ContentType.MediaType);
         }
 
-        [Fact]
-        public void InternalMetricsShouldExist()
-        {
-            var recorder = new SimpleMockRecorder();
-            var tracer = GetTracer(recorder);
-            var span = tracer.BuildSpan("test").Start();
-            span.Finish();
+        // [Fact]
+        // public void ConverterShouldConvertValues()
+        // {
+        //     var recorder = new SimpleMockRecorder();
+        //     var tracer = GetTracer(recorder);
+        //     var span = tracer.BuildSpan("testOperation")
+        //         .WithTag("boolTrueTag", true)
+        //         .WithTag("boolFalseTag", false)
+        //         .WithTag("intTag", 0)
+        //         .WithTag("stringTag", "test")
+        //         .WithTag("doubleTag", 0.1)
+        //         .WithTag("nullTag", null)
+        //         .WithTag("jsonTag", @"{""key"":""value""}")
+        //         .Start();
+        //     span.Finish();
 
-            var client = GetClient();
-
-            var translatedSpans = client.Translate(recorder.GetSpanBuffer());
-            Assert.Equal("spans.dropped", translatedSpans.InternalMetrics.Counts[0].Name);
-        }
-
-        [Fact]
-        public void DroppedSpanCountShouldSerializeCorrectly()
-        {
-            var mockBuffer = new SimpleMockRecorder();
-            mockBuffer.RecordDroppedSpans(1);
-
-            var client = GetClient();
-            var translatedBuffer = client.Translate(mockBuffer.GetSpanBuffer());
+        //     var client = GetClient();
             
-            Assert.Equal(1, translatedBuffer.InternalMetrics.Counts[0].IntValue);
-        }
+        //     var translatedSpans = client.Translate(recorder.GetSpanBuffer());
+        //     var translatedSpan = translatedSpans.Spans[0];
 
-        [Fact]
-        public void DroppedSpanCountShouldIncrementOnBadSpan()
-        {
-            var recorder = new SimpleMockRecorder();
-            var badSpan = new SpanData {
-                Duration = new TimeSpan(-1),
-                OperationName = "badSpan"
-            };
-            recorder.RecordSpan(badSpan);
-            var client = GetClient();
-            var translatedBuffer = client.Translate(recorder.GetSpanBuffer());
-            Assert.Equal(1, translatedBuffer.InternalMetrics.Counts[0].IntValue);
-        }
-
-        [Fact]
-        public void ConverterShouldConvertValues()
-        {
-            var recorder = new SimpleMockRecorder();
-            var tracer = GetTracer(recorder);
-            var span = tracer.BuildSpan("testOperation")
-                .WithTag("boolTrueTag", true)
-                .WithTag("boolFalseTag", false)
-                .WithTag("intTag", 0)
-                .WithTag("stringTag", "test")
-                .WithTag("doubleTag", 0.1)
-                .WithTag("nullTag", null)
-                .WithTag("jsonTag", @"{""key"":""value""}")
-                .Start();
-            span.Finish();
-
-            var client = GetClient();
-            
-            var translatedSpans = client.Translate(recorder.GetSpanBuffer());
-            var translatedSpan = translatedSpans.Spans[0];
-
-            foreach (var tag in translatedSpan.Tags)
-            {
-                switch (tag.Key)
-                {
-                    case "boolTrueFlag":
-                        Assert.True(tag.BoolValue);
-                        break;
-                    case "boolFalseFlag":
-                        Assert.False(tag.BoolValue);
-                        break;
-                    case "intTag":
-                        Assert.Equal(0, tag.IntValue);
-                        break;
-                    case "stringTag":
-                        Assert.Equal("test", tag.StringValue);
-                        break;
-                    case "doubleTag":
-                        Assert.Equal(0.1, tag.DoubleValue);
-                        break;
-                    case "nullTag":
-                        Assert.Equal("null", tag.StringValue);
-                        break;
-                    case "jsonTag":
-                        Assert.Equal(@"{""key"":""value""}", tag.JsonValue);
-                        break;
-                    default:
-                        continue;
-                }
-            }
-        }
+        //     foreach (var tag in translatedSpan.Tags)
+        //     {
+        //         switch (tag.Key)
+        //         {
+        //             case "boolTrueFlag":
+        //                 Assert.True(tag.BoolValue);
+        //                 break;
+        //             case "boolFalseFlag":
+        //                 Assert.False(tag.BoolValue);
+        //                 break;
+        //             case "intTag":
+        //                 Assert.Equal(0, tag.IntValue);
+        //                 break;
+        //             case "stringTag":
+        //                 Assert.Equal("test", tag.StringValue);
+        //                 break;
+        //             case "doubleTag":
+        //                 Assert.Equal(0.1, tag.DoubleValue);
+        //                 break;
+        //             case "nullTag":
+        //                 Assert.Equal("null", tag.StringValue);
+        //                 break;
+        //             case "jsonTag":
+        //                 Assert.Equal(@"{""key"":""value""}", tag.JsonValue);
+        //                 break;
+        //             default:
+        //                 continue;
+        //         }
+        //     }
+        // }
     }
 }

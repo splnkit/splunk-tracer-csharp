@@ -33,7 +33,7 @@ _Development Dependencies_
 - .NET Framework 4.5+ (On MacOS/Linux, you need Mono 5.16, stable channel). **If on MacOS, install Mono via its installer and not Homebrew**
 - .NET Core 2.1+
 - Cake (see _Local Builds_)
-- PostSharp (Windows only, for `LightStep.CSharpAspectTestApp`)
+- PostSharp (Windows only, for `SplunkTracing.CSharpAspectTestApp`)
 
 _Local Builds_
 

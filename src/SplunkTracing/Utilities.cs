@@ -23,5 +23,10 @@ namespace SplunkTracing
         {
             return !span.Tags.ContainsKey(SplunkTracingConstants.MetaEvent.MetaEventKey);
         }
+
+        public static string IdToHex(ulong uid) 
+        {
+            return string.Format("{0:X}", uid);
+        }
     }
 }

@@ -5,9 +5,9 @@
     /// </summary>
     public static class SplunkTracingConstants
     {
-        public static readonly string ParentSpanGuidKey = "parent_span_guid";
+        public static readonly string ParentSpanGuidKey = "parent_span_id";
         public static readonly string GuidKey = "guid";
-        public static readonly string HostnameKey = "hostname";
+        public static readonly string HostnameKey = "device";
         public static readonly string ComponentNameKey = "component_name";
         public static readonly string CommandLineKey = "command_line";
 
