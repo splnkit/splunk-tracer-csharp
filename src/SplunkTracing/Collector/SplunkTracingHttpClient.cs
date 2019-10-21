@@ -31,21 +31,28 @@ namespace SplunkTracing.Collector
         /// <param name="options">An <see cref="Options" /> object.</param>
         public SplunkTracingHttpClient(string url, Options options)
         {
+            // var httpClientHandler = new HttpClientHandler();
+            // httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+
             _url = url;
             _options = options;
             _client = new HttpClient() {Timeout = _options.ReportTimeout};
+
         }
 
         internal HttpRequestMessage CreateCompressedRequest(ReportRequest report)
         {
-            // var jsonFormatter = new JsonFormatter(new JsonFormatter.Settings(true));
-            // var jsonReport = jsonFormatter.Format(report);
+
             var jsonReport = CompressRequestContent(report);
+            // var jsonReport = CreateStringRequest(report);
+
             var request = new HttpRequestMessage(HttpMethod.Post, _url)
             {
                 Version = _options.UseHttp2 ? new Version(2, 0) : new Version(1, 1),
                 Content = new ByteArrayContent(jsonReport)
+                // Content = new StringContent(jsonReport, Encoding.UTF8)
             };
+
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             request.Content.Headers.ContentEncoding.Add("gzip");
             return request;
@@ -56,8 +63,6 @@ namespace SplunkTracing.Collector
         {
             HttpRequestMessage requestMessage = CreateCompressedRequest(report);
 
-            // add HEC access token to request header
-            requestMessage.Content.Headers.Add("Authorization", "Splunk " + report.Auth.AccessToken);
 
             return requestMessage;
 
@@ -66,10 +71,11 @@ namespace SplunkTracing.Collector
         internal byte[] CompressRequestContent(ReportRequest report)
         {
             string requestMessage = CreateStringRequest(report);
-            byte[] requestBytes = Encoding.Unicode.GetBytes(requestMessage);
+            // _logger.Debug($"Report Contents: {requestMessage}");
+            byte[] requestBytes = Encoding.UTF8.GetBytes(requestMessage);
 
             using (MemoryStream memoryStream = new MemoryStream()) {
-                using (System.IO.Compression.GZipStream gZipStream = new System.IO.Compression.GZipStream(memoryStream, CompressionMode.Compress, true)) {
+                using (GZipStream gZipStream = new GZipStream(memoryStream, CompressionMode.Compress, false)) {
                     gZipStream.Write(requestBytes, 0, requestBytes.Length);
                 }
             return memoryStream.ToArray();
@@ -101,17 +107,24 @@ namespace SplunkTracing.Collector
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
             
+            // add HEC access token to request header
+            _logger.Debug($"Token Header: {report.Auth.AccessToken}");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Splunk", report.Auth.AccessToken);
+            
             var requestMessage = BuildRequest(report);
 
             ReportResponse responseValue;
 
             try
             {
-                var response = await _client.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
-                var responseData = await response.Content.ReadAsStringAsync();
-                responseValue = ReportResponse.Parse(responseData);
-                _logger.Debug($"Report HTTP Response {response.StatusCode}");
+                // if (requestMessage.ContentLength > 0)
+                // {
+                    var response = await _client.SendAsync(requestMessage);
+                    response.EnsureSuccessStatusCode();
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    responseValue = ReportResponse.Parse(responseData);
+                    _logger.Debug($"Report HTTP Response {response.StatusCode}");
+                // }
             }
             catch (HttpRequestException ex)
             {
@@ -153,13 +166,12 @@ namespace SplunkTracing.Collector
                 },
                 Auth = new Auth {AccessToken = _options.AccessToken}
             };
+
             _options.Tags.ToList().ForEach(t => request.Reporter.Tags.Add(t.Key,t.Value));
             spanBuffer.GetSpans().ToList().ForEach(span => {
                 try 
                 {
-                    request.Spans.Add(span);
-                    // var serializer = new JavaScriptSerializer();                   //////////////
-                    // var serializedResult = serializer.Serialize(RegisteredUsers); //////////////
+                    request.Spans.Add(Span.Parse(span, request.Reporter));
                 }
                 catch (Exception ex)
                 {

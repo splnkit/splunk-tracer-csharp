@@ -155,45 +155,49 @@ namespace SplunkTracing
                 currentDroppedSpanCount += currentBuffer.DroppedSpanCount;
                 currentBuffer.DroppedSpanCount = currentDroppedSpanCount;
                 
-                try
+                if (currentBuffer.GetSpans().Count() > 0)
                 {
-                    // since translate can throw exceptions, place it in the try and drop spans as appropriate
-                    var data = _httpClient.Translate(currentBuffer);
-                    var resp = await _httpClient.SendReport(data);
-                    
-                    if (resp.code > 0)
+                    try
                     {
-                        _logger.Warn($"Errors in report: {resp.text}");
-                    }
-                    // if the collector is in developer mode, set the tracer to development mode as well
-                    // don't re-enable if it's already enabled though
-                    // TODO: iterate through all commands to find devmode flag
-                    if (_options.EnableMetaEventLogging == false)
-                    {
-                        _logger.Info("Enabling meta event logging");
-                        _options.EnableMetaEventLogging = true;
-                    }
-
-                    lock (_lock)
-                    {
-                        _logger.Trace($"Resetting tracer dropped span count as the last report was successful.");
-                        currentDroppedSpanCount = 0;  
-                    }
-                    
-                }
-                catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException || ex is OperationCanceledException || ex is Exception)
-                {
-                    lock (_lock)
-                    {
-                        _logger.Warn($"Adding {currentBuffer.GetSpans().Count()} spans to dropped span count (current total: {currentDroppedSpanCount})");
-                        currentDroppedSpanCount += currentBuffer.GetSpans().Count();
-                        if (this._options.ExceptionHandlerRegistered)
+                        // since translate can throw exceptions, place it in the try and drop spans as appropriate
+                        var data = _httpClient.Translate(currentBuffer);
+                        var resp = await _httpClient.SendReport(data);
+                        
+                        if (resp.code > 0)
                         {
-                            this._options.ExceptionHandler.Invoke(ex);
+                            _logger.Warn($"Errors in report: {resp.text}");
+                        }
+                        // if the collector is in developer mode, set the tracer to development mode as well
+                        // don't re-enable if it's already enabled though
+                        // TODO: iterate through all commands to find devmode flag
+                        if (_options.EnableMetaEventLogging == false)
+                        {
+                            _logger.Info("Enabling meta event logging");
+                            _options.EnableMetaEventLogging = true;
+                        }
+
+                        lock (_lock)
+                        {
+                            _logger.Trace($"Resetting tracer dropped span count as the last report was successful.");
+                            currentDroppedSpanCount = 0;  
+                        }
+                        
+                    }
+                    catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException || ex is OperationCanceledException || ex is Exception)
+                    {
+                        lock (_lock)
+                        {
+                            _logger.Warn($"Adding {currentBuffer.GetSpans().Count()} spans to dropped span count (current total: {currentDroppedSpanCount})");
+                            _logger.Warn($"Exception: {ex}");
+                            currentDroppedSpanCount += currentBuffer.GetSpans().Count();
+                            if (this._options.ExceptionHandlerRegistered)
+                            {
+                                this._options.ExceptionHandler.Invoke(ex);
+                            }
                         }
                     }
-                }
                 
+                }
                 
             }
         }

@@ -42,6 +42,15 @@ namespace SplunkTracing
         }
 
         /// <summary>
+        ///     Gets all <see cref="KeyValuePair{TKey,TValue}" /> from baggage.
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, string> GetBaggage()
+        {
+            return new Dictionary<string, string>(_items);
+        }
+
+        /// <summary>
         ///     Combines two baggage into one.
         /// </summary>
         /// <param name="other"></param>

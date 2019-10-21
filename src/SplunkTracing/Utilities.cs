@@ -24,9 +24,9 @@ namespace SplunkTracing
             return !span.Tags.ContainsKey(SplunkTracingConstants.MetaEvent.MetaEventKey);
         }
 
-        public static string IdToHex(ulong uid) 
+        public static string IdToHex(string uid) 
         {
-            return string.Format("{0:X}", uid);
+            return string.Format("{0:x}", Convert.ToUInt64(uid));
         }
     }
 }

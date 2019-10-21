@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Json;
 using SplunkTracing.Logging;
 
 namespace SplunkTracing.Collector {
@@ -47,8 +49,7 @@ namespace SplunkTracing.Collector {
     }
 
     public override string ToString() {
-      // return pb::JsonFormatter.ToDiagnosticString(this);
-      return "string";
+      return reporterId_.ToString();
     }
 
 
@@ -116,15 +117,6 @@ namespace SplunkTracing.Collector {
 
     partial void OnConstruction();
 
-    // public ReportRequest(ReportRequest other) : this() {
-    //   reporter_ = other.reporter_ != null ? other.reporter_.Clone() : null;
-    //   auth_ = other.auth_ != null ? other.auth_.Clone() : null;
-    //   spans_ = other.spans_.Clone();
-    // }
-
-    // public ReportRequest Clone() {
-    //   return new ReportRequest(this);
-    // }
 
     /// <summary>Field number for the "reporter" field.</summary>
     private global::SplunkTracing.Collector.Reporter reporter_;
@@ -147,45 +139,103 @@ namespace SplunkTracing.Collector {
       }
     }
 
-
-    private readonly List<SpanData> spans_ = new List<SpanData>();
+    private readonly List<string> spans_ = new List<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public List<SpanData> Spans {
+    public List<string> Spans {
       get { return spans_; }
     }
 
     public override string ToString() {
-      // return pb::JsonFormatter.ToDiagnosticString(this);
-      List<string> report_obj_list = new List<string>();
-      report_obj_list.Add("a");
-      // string[] report_obj_array = report_obj_list.ToArray
-      string reportString = string.Join("\n", report_obj_list);
-      return "string";
+      return string.Join("\n", spans_);
     }
 
 
     public int CalculateSize() {
-      int size = 0;
-      // if (reporter_ != null) {
-      //   size += 1 + pb::CodedOutputStream.ComputeMessageSize(Reporter);
-      // }
-      // if (auth_ != null) {
-      //   size += 1 + pb::CodedOutputStream.ComputeMessageSize(Auth);
-      // }
-      // size += spans_.CalculateSize(_repeated_spans_codec);
-      // if (TimestampOffsetMicros != 0L) {
-      //   size += 1 + pb::CodedOutputStream.ComputeInt64Size(TimestampOffsetMicros);
-      // }
-      // if (internalMetrics_ != null) {
-      //   size += 1 + pb::CodedOutputStream.ComputeMessageSize(InternalMetrics);
-      // }
-      // if (_unknownFields != null) {
-      //   size += _unknownFields.CalculateSize();
-      // }
-      return size;
+      return spans_.Count;
     }
 
+  }
 
+  
+  public class Span  
+  { 
+    private static readonly ILog _logger = LogProvider.GetCurrentClassLogger();
+
+
+    public static string Parse(SpanData span, Reporter reporter)  {
+        var event_obj_list = new List<string>();
+        var epochZero = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero); 
+        var convertedSpan = new JsonObject();
+        convertedSpan.Add("time", (span.StartTimestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0);
+        convertedSpan.Add("sourcetype", "splunktracing:span");
+        convertedSpan.Add("event", new JsonObject() {
+          ["component_name"] = reporter.Tags["component_name"].ToString(),
+          ["operation_name"] = span.OperationName,
+          ["tracer_platform_version"] = reporter.Tags["tracer_platform_version"].ToString(),
+          ["tracer_platform"] = reporter.Tags["tracer_platform"].ToString(),
+          ["tracer_version"] = reporter.Tags["tracer_version"].ToString(),
+          ["trace_id"] = Utilities.IdToHex(span.Context.TraceId),
+          ["span_id"] = Utilities.IdToHex(span.Context.SpanId),
+          ["parent_span_id"] = Utilities.IdToHex(span.Context.ParentSpanId),
+          ["device"] = reporter.Tags["device"].ToString(),
+          ["guid"] = reporter.ReporterId,
+          ["timestamp"] = (span.StartTimestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0,  //UtcTicks
+          ["duration"] = Convert.ToUInt64(Math.Abs(span.Duration.Ticks) / 10),
+          ["tags"] = new JsonObject(DictToJson(span.Tags)), //span.Tags
+          ["baggage"] = new JsonObject(StringDictToJson(span.Context.GetBaggage())), // span.Context.GetBaggage()
+          }
+        );
+        event_obj_list.Add(convertedSpan.ToString());
+        foreach (var log in span.LogData)
+        {
+          var log_obj = new JsonObject();
+          log_obj.Add("time", (log.Timestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0);
+          log_obj.Add("sourcetype", "splunktracing:log");
+          log_obj.Add("event", new JsonObject() {
+            ["component_name"] = reporter.Tags["component_name"].ToString(),
+            ["operation_name"] = span.OperationName,
+            ["tracer_platform_version"] = reporter.Tags["tracer_platform_version"].ToString(),
+            ["tracer_platform"] = reporter.Tags["tracer_platform"].ToString(),
+            ["tracer_version"] = reporter.Tags["tracer_version"].ToString(),
+            ["trace_id"] = Utilities.IdToHex(span.Context.TraceId),
+            ["span_id"] = Utilities.IdToHex(span.Context.SpanId),
+            ["parent_span_id"] = Utilities.IdToHex(span.Context.ParentSpanId),
+            ["device"] = reporter.Tags["device"].ToString(),
+            ["guid"] = reporter.ReporterId,
+            ["timestamp"] = (log.Timestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0,
+            ["tags"] = new JsonObject(DictToJson(span.Tags)),
+            ["baggage"] = new JsonObject(StringDictToJson(span.Context.GetBaggage())), 
+            ["fields"] = new JsonObject(LogFieldsToJson(log.Fields)),
+          });
+          event_obj_list.Add(log_obj.ToString());
+        }
+
+        return string.Join("\n", event_obj_list);
+    }
+    public static IEnumerable<KeyValuePair<string, JsonValue>> DictToJson(IDictionary<string, object> thing)
+    {
+        foreach (var item in thing)
+        {
+          KeyValuePair<string,JsonValue> json_attr = new KeyValuePair<string,JsonValue>(item.Key, item.Value.ToString());
+          yield return json_attr;
+        }
+    }
+    public static IEnumerable<KeyValuePair<string, JsonValue>> StringDictToJson(IDictionary<string, string> thing)
+    {
+        foreach (var item in thing)
+        {
+          KeyValuePair<string,JsonValue> json_attr = new KeyValuePair<string,JsonValue>(item.Key, item.Value.ToString());
+          yield return json_attr;
+        }
+    }
+    public static IEnumerable<KeyValuePair<string, JsonValue>> LogFieldsToJson(IEnumerable<KeyValuePair<string, object>> frank)
+    {
+        foreach (var flink in frank)
+        {
+            KeyValuePair<string,JsonValue> json_attr = new KeyValuePair<string,JsonValue>(flink.Key.ToString(), flink.Value.ToString());
+            yield return json_attr;
+        }
+    }
   }
 
   [DataContract]  
@@ -207,57 +257,4 @@ namespace SplunkTracing.Collector {
         return deserializedResponse;  
     }
   }
-//   public sealed partial class ReportResponse {
-
-//     public ReportResponse() {
-//       OnConstruction();
-//     }
-
-//     partial void OnConstruction();
-
-//     public ReportResponse(ReportResponse other) : this() {
-
-//     }
-
-//     private readonly int code_ = new int;
-
-//     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-//     public int Code {
-//       get { return code_; }
-//     }
-
-//     private readonly string text_ = new string;
-
-//     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-//     public int Text {
-//       get { return text_; }
-//     }
-
-//     public ReportResponse Clone() {
-//       return new ReportResponse(this);
-//     }
-
-
-//     public override int GetHashCode() {
-//       int hash = 1;
-//       return hash;
-//     }
-
-//     public override string ToString() {
-
-//       return text_;
-//     }
-
-//     public int CalculateSize() {
-//       int size = 0;
-//       return size;
-//     }
-//     public static ReportResponse Parse(string response) {
-
-//       return ReportResponse(response);
-//     }
-
-//   }
-
-// }
 }

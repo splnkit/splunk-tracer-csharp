@@ -34,6 +34,12 @@ namespace SplunkTracing
             return _baggage.GetAll();
         }
 
+        /// <inheritdoc />
+        public Dictionary<string, string> GetBaggage()
+        {
+            return _baggage.GetBaggage();
+        }
+
         /// <summary>
         ///     Get a single item from the baggage.
         /// </summary>
