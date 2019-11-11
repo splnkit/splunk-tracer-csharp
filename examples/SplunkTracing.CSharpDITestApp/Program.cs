@@ -12,7 +12,7 @@ namespace SplunkTracing.CSharpDITestApp
         public static void Main(string[] args)
         {
             // replace these options with your collector and api key
-            var tracerOptions = new Options("TEST_TOKEN").WithCollector(new CollectorOptions("localhost", 8089, true));
+            var tracerOptions = new Options("TEST_TOKEN").WithCollector(new CollectorOptions("localhost", 8088, true));
             var container = new WindsorContainer();
             // during registration, pass your options to the concrete Splunk Tracer implementation
             container.Register(Component.For<ITracer>().ImplementedBy<Tracer>().DependsOn(Dependency.OnValue("options", tracerOptions)));            

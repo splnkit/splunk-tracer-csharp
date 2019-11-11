@@ -31,13 +31,12 @@
       <Description>OpenTracing compliant tracer for Splunk.</Description>
       <Copyright>Splunk 2019</Copyright>
       <PackageTags>tracing</PackageTags>
-      <PackageReleaseNotes>https://github.com/splunk/splunk-tracer-csharp/blob/master/CHANGELOG.md</PackageReleaseNotes>
-      <PackageIconUrl>https://raw.githubusercontent.com/splunk/splunk-tracer-csharp/master/spl128x128.png</PackageIconUrl>
+      <PackageReleaseNotes>https://github.com/splnkit/splunk-tracer-csharp/blob/master/CHANGELOG.md</PackageReleaseNotes>
       <PackageProjectUrl>http://www.splunk.com</PackageProjectUrl>
-      <PackageLicenseUrl>https://raw.githubusercontent.com/splunk/splunk-tracer-csharp/blob/master/LICENSE</PackageLicenseUrl>
+      <PackageLicenseUrl>https://raw.githubusercontent.com/splnkit/splunk-tracer-csharp/blob/master/LICENSE</PackageLicenseUrl>
       <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
       <RepositoryType>git</RepositoryType>
-      <RepositoryUrl>https://raw.githubusercontent.com/splunk/splunk-tracer-csharp</RepositoryUrl>
+      <RepositoryUrl>https://raw.githubusercontent.com/splnkit/splunk-tracer-csharp</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup>

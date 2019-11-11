@@ -97,7 +97,6 @@ namespace SplunkTracing.Collector {
     }
 
     public override string ToString() {
-      // return pb::JsonFormatter.ToDiagnosticString(this);
       return "string";
     }
 
@@ -178,11 +177,11 @@ namespace SplunkTracing.Collector {
           ["span_id"] = Utilities.IdToHex(span.Context.SpanId),
           ["parent_span_id"] = Utilities.IdToHex(span.Context.ParentSpanId),
           ["device"] = reporter.Tags["device"].ToString(),
-          ["guid"] = reporter.ReporterId,
-          ["timestamp"] = (span.StartTimestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0,  //UtcTicks
+          ["guid"] = Utilities.IdToHex(reporter.ReporterId.ToString()),
+          ["timestamp"] = (span.StartTimestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0,
           ["duration"] = Convert.ToUInt64(Math.Abs(span.Duration.Ticks) / 10),
-          ["tags"] = new JsonObject(DictToJson(span.Tags)), //span.Tags
-          ["baggage"] = new JsonObject(StringDictToJson(span.Context.GetBaggage())), // span.Context.GetBaggage()
+          ["tags"] = new JsonObject(DictToJson(span.Tags)),
+          ["baggage"] = new JsonObject(StringDictToJson(span.Context.GetBaggage())),
           }
         );
         event_obj_list.Add(convertedSpan.ToString());
@@ -201,7 +200,7 @@ namespace SplunkTracing.Collector {
             ["span_id"] = Utilities.IdToHex(span.Context.SpanId),
             ["parent_span_id"] = Utilities.IdToHex(span.Context.ParentSpanId),
             ["device"] = reporter.Tags["device"].ToString(),
-            ["guid"] = reporter.ReporterId,
+            ["guid"] = Utilities.IdToHex(reporter.ReporterId.ToString()),
             ["timestamp"] = (log.Timestamp.UtcTicks - epochZero.UtcTicks) / 10000000.0,
             ["tags"] = new JsonObject(DictToJson(span.Tags)),
             ["baggage"] = new JsonObject(StringDictToJson(span.Context.GetBaggage())), 

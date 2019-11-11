@@ -9,7 +9,7 @@ var distDir = Directory("./dist");
 var solution = "./SplunkTracing.sln";
 var library = "./src/SplunkTracing/SplunkTracing.csproj";
 var splunkAssemblyInfoFile = "./src/SplunkTracing/Properties/AssemblyInfo.cs";		
-var version = EnvironmentVariable("CIRCLE_TAG") ?? "v0.0.0";
+var version = EnvironmentVariable("CIRCLE_TAG") ?? "v0.1.0";
 version = version.TrimStart('v');
 var buildNo = String.IsNullOrWhiteSpace(EnvironmentVariable("CIRCLE_BUILD_NUM")) ? "0" : EnvironmentVariable("CIRCLE_BUILD_NUM");
 var semVersion = string.Concat(version + "-" + buildNo);
@@ -47,7 +47,7 @@ Task("Build")
 			Version = transformedVersion,
 			FileVersion = transformedVersion,
 			InformationalVersion = version,
-			Copyright = string.Format("Copyright (c) SplunkTracing 2018 - {0}", DateTime.Now.Year),
+			Copyright = string.Format("Copyright (c) Splunk 2019 - {0}", DateTime.Now.Year),
 			InternalsVisibleTo = new List<string>() { testAssemblyFriendlyName }
 		});
 		var assemblyInfo = ParseAssemblyInfo(splunkAssemblyInfoFile);
